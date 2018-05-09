@@ -5,7 +5,9 @@
 package spnego
 
 import (
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/apcera/gssapi"
@@ -89,6 +91,13 @@ func (k KerberizedServer) Negotiate(cred *gssapi.CredId, inHeader, outHeader htt
 			cred, inputToken, k.GSS_C_NO_CHANNEL_BINDINGS)
 	if err != nil {
 		return "", http.StatusBadRequest, err
+	}
+	if outputToken.Length() > 0 {
+		outHeader.Add(
+			"WWW-Authenticate",
+			fmt.Sprintf(
+				"Negotiate %s",
+				base64.StdEncoding.EncodeToString(outputToken.Bytes())))
 	}
 	delegatedCredHandle.Release()
 	ctx.DeleteSecContext()
