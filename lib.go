@@ -155,6 +155,7 @@ type ftable struct {
 	Fp_gss_export_name            unsafe.Pointer
 	Fp_gss_inquire_mechs_for_name unsafe.Pointer
 	Fp_gss_inquire_names_for_mech unsafe.Pointer
+	Fp_gss_localname              unsafe.Pointer
 	Fp_gss_release_name           unsafe.Pointer
 
 	// oid_set.go
