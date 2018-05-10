@@ -125,6 +125,19 @@ wrap_gss_duplicate_name(void *fp,
 		minor_status, src_name, dest_name);
 }
 
+OM_uint32
+wrap_gss_localname(void *fp,
+	OM_uint32 *minor_status,
+	const gss_name_t name,
+	const gss_OID mech_type,
+	gss_buffer_t localname)
+{
+	return ((OM_uint32(*)(
+		OM_uint32 *, gss_const_name_t, const gss_OID, gss_buffer_t)
+	)fp)(
+		minor_status, name, mech_type, localname);
+}
+
 */
 import "C"
 
@@ -218,6 +231,22 @@ func (n Name) Canonicalize(mech_type *OID) (canonical *Name, err error) {
 	}
 
 	return canonical, nil
+}
+
+// LocalName returns a platform-specific name for a GSSAPI name as interpreted
+// by a given mechanism.
+func (n Name) LocalName(mech_type *OID) (string, error) {
+	var min C.OM_uint32
+	b, err := n.MakeBuffer(allocGSSAPI)
+	defer b.Release()
+	maj := C.wrap_gss_localname(
+		n.Fp_gss_localname, &min, n.C_gss_name_t, mech_type.C_gss_OID, b.C_gss_buffer_t)
+
+	err = n.stashLastStatus(maj, min)
+	if err != nil {
+		return "", err
+	}
+	return b.String(), nil
 }
 
 // Duplicate creates a new independent imported name; after this, both the original and
